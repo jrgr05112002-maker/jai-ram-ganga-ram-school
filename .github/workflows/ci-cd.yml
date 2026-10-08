@@ -1,0 +1,55 @@
+name: JRGR School CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 1. Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # 3. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 4. Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm install
+
+      # 5. Install frontend dependencies
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm install
+
+      # 6. Build frontend
+      - name: Build frontend
+        working-directory: client
+        run: npm run build
+
+      # 7. Run Java tests
+      - name: Run Selenium and Rest Assured tests
+        working-directory: tests
+        run: mvn test
