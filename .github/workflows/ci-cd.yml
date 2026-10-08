@@ -49,43 +49,51 @@ jobs:
         working-directory: client
         run: npm run build
 
-      # 7. Start application using Docker Compose
-      - name: Start application
+      # 7. Create CI environment
+      - name: Create CI environment
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
+          printf 'MONGO_URI=%s\n' "$MONGO_URI" > server/.env
+          printf 'PORT=5000\n' >> server/.env
+
+      # 8. Start application
+      - name: Start application
+        run: |
           docker compose up -d --build
 
-      # 8. Wait for backend
+      # 9. Wait for backend
       - name: Wait for backend
         run: |
           echo "Waiting for backend..."
+
           for i in {1..30}; do
             if curl -f http://localhost:5000/api/health; then
               echo "Backend is ready!"
               break
             fi
+
             echo "Backend not ready yet..."
             sleep 5
           done
 
-      # 9. Check frontend
+      # 10. Check frontend
       - name: Check frontend
         run: |
           curl -f http://localhost:5173
           echo "Frontend is ready!"
 
-      # 10. Run Selenium + Rest Assured tests
+      # 11. Run Selenium and Rest Assured tests
       - name: Run Selenium and Rest Assured tests
         working-directory: tests
         run: mvn test
 
-      # 11. Show Docker logs if tests fail
+      # 12. Show Docker logs if tests fail
       - name: Show Docker logs
         if: failure()
         run: docker compose logs
 
-      # 12. Stop application
+      # 13. Stop application
       - name: Stop application
         if: always()
         run: docker compose down
