@@ -1,8 +1,8 @@
 
 package com.jrgr.sdet.tests.ui;
 
-import com.jrgr.sdet.pages.ContactPage;
 import com.jrgr.sdet.base.BaseTest;
+import com.jrgr.sdet.pages.ContactPage;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -16,26 +16,18 @@ public class ContactFormTest extends BaseTest {
 
         ContactPage contactPage = new ContactPage(driver);
 
-        contactPage.enterName("RAM");
-        contactPage.enterPhone("9876543210");
-        contactPage.enterMessage(
-                "Testing the school contact form");
-
-        contactPage.submit();
+        contactPage
+                .enterName("RAM")
+                .enterPhone("9876543210")
+                .enterMessage("Testing the school contact form")
+                .submit();
 
         String statusMessage = contactPage.getStatusMessage();
 
-        Assert.assertFalse(
-                statusMessage.isEmpty(),
-                "Expected a visible contact-form status message after submission."
-        );
-
-        Assert.assertTrue(
-                statusMessage.toLowerCase().contains("success")
-                        || statusMessage.toLowerCase().contains("thank")
-                        || statusMessage.toLowerCase().contains("submitted"),
-                "Expected a successful submission message, but received: "
-                        + statusMessage
+        Assert.assertEquals(
+                statusMessage,
+                "Thank you! Your enquiry has been submitted.",
+                "The contact form should display the success message."
         );
     }
 }

@@ -15,14 +15,26 @@ public class ContactPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
 
-    private final By nameField = By.cssSelector("#contact input[name='name']");
-    private final By phoneField = By.cssSelector("#contact input[name='phone']");
-    private final By messageField = By.cssSelector("#contact textarea[name='message']");
-    private final By submitButton = By.cssSelector("#contact button[type='submit']");
+    private final By nameField =
+            By.cssSelector("#contact input[name='name']");
+
+    private final By phoneField =
+            By.cssSelector("#contact input[name='phone']");
+
+    private final By messageField =
+            By.cssSelector("#contact textarea[name='message']");
+
+    private final By submitButton =
+            By.cssSelector("#contact button[type='submit']");
+
+    // Exact selector from your React component
+    private final By statusMessage =
+            By.cssSelector("#contact .form-status");
 
     public ContactPage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wait = new WebDriverWait(
+                driver, Duration.ofSeconds(20));
     }
 
     public ContactPage enterName(String name) {
@@ -51,48 +63,28 @@ public class ContactPage {
 
     public ContactPage submit() {
         WebElement button = wait.until(
-                ExpectedConditions.presenceOfElementLocated(submitButton));
+                ExpectedConditions.elementToBeClickable(submitButton));
 
         ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({block:'center'});", button);
-
-        wait.until(ExpectedConditions.elementToBeClickable(submitButton));
+                "arguments[0].scrollIntoView({block: 'center'});", button);
 
         try {
-            driver.findElement(submitButton).click();
+            wait.until(ExpectedConditions.elementToBeClickable(submitButton))
+                    .click();
         } catch (org.openqa.selenium.ElementClickInterceptedException e) {
-            WebElement currentButton = driver.findElement(submitButton);
+            // Fallback for an intercepted click
+            button = driver.findElement(submitButton);
             ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].click();", currentButton);
+                    "arguments[0].click();", button);
         }
 
         return this;
     }
 
     public String getStatusMessage() {
-        By[] possibleMessages = {
-            By.cssSelector("#contact [role='status']"),
-            By.cssSelector("#contact .status-message"),
-            By.cssSelector("#contact .success-message"),
-            By.cssSelector("#contact .error-message")
-        };
-
-        for (By locator : possibleMessages) {
-            try {
-                WebElement element = new WebDriverWait(
-                        driver, Duration.ofSeconds(3))
-                        .until(ExpectedConditions.visibilityOfElementLocated(locator));
-
-                String message = element.getText().trim();
-
-                if (!message.isEmpty()) {
-                    return message;
-                }
-            } catch (org.openqa.selenium.TimeoutException ignored) {
-                // Try the next possible status-message selector.
-            }
-        }
-
-        return "";
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(statusMessage))
+                .getText()
+                .trim();
     }
 }
