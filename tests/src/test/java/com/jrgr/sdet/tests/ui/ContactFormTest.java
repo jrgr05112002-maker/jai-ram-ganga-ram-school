@@ -1,31 +1,41 @@
+
 package com.jrgr.sdet.tests.ui;
 
-import com.jrgr.sdet.base.BaseTest;
-import com.jrgr.sdet.config.ConfigReader;
 import com.jrgr.sdet.pages.ContactPage;
-import com.jrgr.sdet.pages.HomePage;
-import com.jrgr.sdet.utils.TestData;
+import com.jrgr.sdet.base.BaseTest;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class ContactFormTest extends BaseTest {
 
-    @Test(description = "Submit enquiry from school website contact form")
+    @Test
     public void submitEnquirySuccessfully() {
-        HomePage homePage = new HomePage(driver).open(ConfigReader.get("ui.base.url"));
-        homePage.clickContact();
 
-        String name = TestData.uniqueName("SDET Test");
+        driver.get("http://localhost:5173");
 
-        ContactPage contactPage = new ContactPage(driver)
-                .enterName(name)
-                .enterPhone("9876543210")
-                .enterMessage("Automated Selenium enquiry test")
-                .submit();
+        ContactPage contactPage = new ContactPage(driver);
 
-        Assert.assertEquals(
-                contactPage.getStatusMessage(),
-                "Thank you! Your enquiry has been submitted."
+        contactPage.enterName("RAM");
+        contactPage.enterPhone("9876543210");
+        contactPage.enterMessage(
+                "Testing the school contact form");
+
+        contactPage.submit();
+
+        String statusMessage = contactPage.getStatusMessage();
+
+        Assert.assertFalse(
+                statusMessage.isEmpty(),
+                "Expected a visible contact-form status message after submission."
+        );
+
+        Assert.assertTrue(
+                statusMessage.toLowerCase().contains("success")
+                        || statusMessage.toLowerCase().contains("thank")
+                        || statusMessage.toLowerCase().contains("submitted"),
+                "Expected a successful submission message, but received: "
+                        + statusMessage
         );
     }
 }

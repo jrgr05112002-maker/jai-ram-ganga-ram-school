@@ -15,47 +15,38 @@ public class ContactPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
 
-    private final By nameField =
-            By.cssSelector("#contact input[name='name']");
-
-    private final By phoneField =
-            By.cssSelector("#contact input[name='phone']");
-
-    private final By messageField =
-            By.cssSelector("#contact textarea[name='message']");
-
-    private final By submitButton =
-            By.cssSelector("#contact button[type='submit']");
-
-    // Adjust this locator if your frontend uses a different
-    // element to display the submission result.
-    private final By statusMessage =
-            By.cssSelector("#contact .status-message");
+    private final By nameField = By.cssSelector("#contact input[name='name']");
+    private final By phoneField = By.cssSelector("#contact input[name='phone']");
+    private final By messageField = By.cssSelector("#contact textarea[name='message']");
+    private final By submitButton = By.cssSelector("#contact button[type='submit']");
 
     public ContactPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
-    public void enterName(String name) {
-        WebElement element = wait.until(
+    public ContactPage enterName(String name) {
+        WebElement field = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(nameField));
-        element.clear();
-        element.sendKeys(name);
+        field.clear();
+        field.sendKeys(name);
+        return this;
     }
 
-    public void enterPhone(String phone) {
-        WebElement element = wait.until(
+    public ContactPage enterPhone(String phone) {
+        WebElement field = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(phoneField));
-        element.clear();
-        element.sendKeys(phone);
+        field.clear();
+        field.sendKeys(phone);
+        return this;
     }
 
-    public void enterMessage(String message) {
-        WebElement element = wait.until(
+    public ContactPage enterMessage(String message) {
+        WebElement field = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(messageField));
-        element.clear();
-        element.sendKeys(message);
+        field.clear();
+        field.sendKeys(message);
+        return this;
     }
 
     public ContactPage submit() {
@@ -63,18 +54,45 @@ public class ContactPage {
                 ExpectedConditions.presenceOfElementLocated(submitButton));
 
         ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({block: 'center'});",
-                button);
+                "arguments[0].scrollIntoView({block:'center'});", button);
 
-        wait.until(ExpectedConditions.elementToBeClickable(button));
-        button.click();
+        wait.until(ExpectedConditions.elementToBeClickable(submitButton));
+
+        try {
+            driver.findElement(submitButton).click();
+        } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+            WebElement currentButton = driver.findElement(submitButton);
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].click();", currentButton);
+        }
 
         return this;
     }
 
     public String getStatusMessage() {
-        return wait.until(
-                ExpectedConditions.visibilityOfElementLocated(statusMessage))
-                .getText();
+        By[] possibleMessages = {
+            By.cssSelector("#contact [role='status']"),
+            By.cssSelector("#contact .status-message"),
+            By.cssSelector("#contact .success-message"),
+            By.cssSelector("#contact .error-message")
+        };
+
+        for (By locator : possibleMessages) {
+            try {
+                WebElement element = new WebDriverWait(
+                        driver, Duration.ofSeconds(3))
+                        .until(ExpectedConditions.visibilityOfElementLocated(locator));
+
+                String message = element.getText().trim();
+
+                if (!message.isEmpty()) {
+                    return message;
+                }
+            } catch (org.openqa.selenium.TimeoutException ignored) {
+                // Try the next possible status-message selector.
+            }
+        }
+
+        return "";
     }
 }
