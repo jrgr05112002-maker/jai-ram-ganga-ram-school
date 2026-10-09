@@ -27,9 +27,9 @@ function Contact() {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/enquiries",
-        formData
-      );
+  `${import.meta.env.VITE_API_URL}/api/enquiries`,
+  formData
+);
 
       setStatus("Thank you! Your enquiry has been submitted.");
       setFormData({
